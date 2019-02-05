@@ -117,7 +117,7 @@ lazy val playPublishingSettings: Seq[sbt.Setting[_]] = sbtrelease.ReleasePlugin.
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := "<empty>;com.kenshoo.play.metrics.*;.*definition.*;prod.*;testOnlyDoNotUseInAppConf.*;app.*;uk.gov.hmrc.BuildInfo;views.*;uk.gov.hmrc.apinotificationpull.config.*",
-  coverageMinimum := 20,
+  coverageMinimum := 20, //TODO increase when a real endpoint added
   coverageFailOnMinimum := true,
   coverageHighlighting := true,
   parallelExecution in Test := false
@@ -127,7 +127,7 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 val compileDependencies = Seq(customsApiCommon)
 
-val testDependencies = Seq(hmrcTest, scalaTest, pegDown,
+val testDependencies = Seq(hmrcTest, scalaTest,
   scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "public"

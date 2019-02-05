@@ -4,7 +4,7 @@
   "scopes":[],
   "api": {
     "name": "Customs Notification Push Retry",
-    "description": "Allows for retrying failed push notifications",
+    "description": "Provides a mechanism to count and unblock notifications that failed to be pushed so they can be retried",
     "context": "@apiContext",
     "versions": [
       {
