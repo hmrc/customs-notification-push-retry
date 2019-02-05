@@ -1,0 +1,20 @@
+@import play.api.libs.json.Json
+@(apiContext: String)
+{
+  "scopes":[],
+  "api": {
+    "name": "Customs Notification Push Retry",
+    "description": "Provides a mechanism to count and unblock notifications that failed to be pushed so they can be retried",
+    "context": "@apiContext",
+    "versions": [
+      {
+        "version": "1.0",
+        "status": "BETA",
+        "endpointsEnabled": true,
+        "access": {
+          "type": "PUBLIC"
+        }
+      }
+    ]
+  }
+}
