@@ -18,12 +18,33 @@ package uk.gov.hmrc.customs.notificationpushretry.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent}
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
+import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
+import uk.gov.hmrc.customs.notificationpushretry.validators.HeaderValidator
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-@Singleton
-class NotificationsController @Inject()() extends BaseController {
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.control.NonFatal
 
-  def get(): Action[AnyContent] = Action {
-    Ok("hello from customs notification push retry service").as(XML)
+@Singleton
+class NotificationsController @Inject()(customsNotificationService: CustomsNotificationService,
+                                        headerValidator: HeaderValidator,
+                                        logger: CdsLogger) extends BaseController {
+
+  def get(): Action[AnyContent] =
+    (headerValidator.validateAcceptHeader andThen headerValidator.validateXClientIdHeader).async { implicit request =>
+
+      def xmlResult(pushNotificationBlockedCount: Int) = <pushNotificationBlockedCount>{pushNotificationBlockedCount}</pushNotificationBlockedCount>
+
+      implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = request.headers.headers)
+
+      customsNotificationService.getNotifications().map(f => Ok(xmlResult(f.pushNotificationBlockedCount)).as(XML))
+        .recover {
+          case NonFatal(e) =>
+            logger.error(s"Error obtaining blocked count: ${e.getMessage}", e)
+            ErrorResponse.ErrorInternalServerError.XmlResult
+        }
   }
 }

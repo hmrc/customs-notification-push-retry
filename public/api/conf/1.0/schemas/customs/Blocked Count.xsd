@@ -1,0 +1,5 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <!-- XML Schema Generated from XML Document on Mon Feb 11 2019 10:49:15 GMT+0000 (Greenwich Mean Time) -->
+    <!-- with XmlGrid.net Free Online Service http://xmlgrid.net -->
+    <xs:element name="pushNotificationBlockedCount" type="xs:int"/>
+</xs:schema>

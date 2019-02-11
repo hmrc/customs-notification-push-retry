@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notificationpushretry.config
+package uk.gov.hmrc.customs.notificationpushretry.services
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import javax.inject.Inject
+import uk.gov.hmrc.customs.notificationpushretry.connectors.CustomsNotificationConnector
+import uk.gov.hmrc.customs.notificationpushretry.model.BlockedCount
+import uk.gov.hmrc.http.HeaderCarrier
 
-@Singleton
-class AppContext @Inject()(configuration: Configuration) {
-  private val apiContextConfigKey = "api.context"
-  private def apiConfigException(apiConfigKey: String) = new IllegalStateException(s"$apiConfigKey is not configured")
-  lazy val apiContext: String = configuration.getString(apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
+import scala.concurrent.Future
+
+class CustomsNotificationService @Inject()(customsNotificationConnector: CustomsNotificationConnector) {
+
+  def getNotifications()(implicit hc: HeaderCarrier): Future[BlockedCount] = {
+    customsNotificationConnector.getNotifications()
+  }
 }

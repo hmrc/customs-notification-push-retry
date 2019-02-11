@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notificationpushretry.config
+package uk.gov.hmrc.customs.notificationpushretry.model
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-
-@Singleton
-class AppContext @Inject()(configuration: Configuration) {
-  private val apiContextConfigKey = "api.context"
-  private def apiConfigException(apiConfigKey: String) = new IllegalStateException(s"$apiConfigKey is not configured")
-  lazy val apiContext: String = configuration.getString(apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
-}
+case class BlockedCount(pushNotificationBlockedCount: Int)
