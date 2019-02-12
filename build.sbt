@@ -116,8 +116,8 @@ lazy val playPublishingSettings: Seq[sbt.Setting[_]] = sbtrelease.ReleasePlugin.
   publishAllArtefacts
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
-  coverageExcludedPackages := "<empty>;com.kenshoo.play.metrics.*;.*definition.*;prod.*;testOnlyDoNotUseInAppConf.*;app.*;uk.gov.hmrc.BuildInfo;views.*;uk.gov.hmrc.apinotificationpull.config.*",
-  coverageMinimum := 20, //TODO increase when a real endpoint added
+  coverageExcludedPackages := "<empty>;com.kenshoo.play.metrics.*;.*definition.*;prod.*;testOnlyDoNotUseInAppConf.*;app.*;uk.gov.hmrc.BuildInfo;views.*;uk.gov.hmrc.customs.notificationpushretry.config.*",
+  coverageMinimum := 96,
   coverageFailOnMinimum := true,
   coverageHighlighting := true,
   parallelExecution in Test := false
@@ -134,3 +134,21 @@ unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
 
 libraryDependencies ++= compileDependencies ++ testDependencies
 
+// Task to create a ZIP file containing all XSDs for each version, under the version directory
+lazy val zipXsds = taskKey[Unit]("Zips up all XSDs")
+zipXsds := {
+  (baseDirectory.value / "public" / "api" / "conf")
+    .listFiles()
+    .filter(_.isDirectory)
+    .foreach { dir =>
+      val wcoXsdPaths = Path.allSubpaths(dir / "schemas")
+      val zipFile = dir / "customs-notification-push-retry-schemas.zip"
+      IO.zip(wcoXsdPaths, zipFile)
+    }
+}
+
+// default package task depends on packageBin which we override here to also invoke the custom ZIP task
+packageBin in Compile := {
+  zipXsds.value
+  (packageBin in Compile).value
+}
