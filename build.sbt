@@ -134,9 +134,9 @@ unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
 
 libraryDependencies ++= compileDependencies ++ testDependencies
 
-// Task to create a ZIP file containing all WCO XSDs for each version, under the version directory
-lazy val zipWcoXsds = taskKey[Unit]("Zips up all XSDs")
-zipWcoXsds := {
+// Task to create a ZIP file containing all XSDs for each version, under the version directory
+lazy val zipXsds = taskKey[Unit]("Zips up all XSDs")
+zipXsds := {
   (baseDirectory.value / "public" / "api" / "conf")
     .listFiles()
     .filter(_.isDirectory)
@@ -149,6 +149,6 @@ zipWcoXsds := {
 
 // default package task depends on packageBin which we override here to also invoke the custom ZIP task
 packageBin in Compile := {
-  zipWcoXsds.value
+  zipXsds.value
   (packageBin in Compile).value
 }

@@ -16,4 +16,6 @@
 
 package uk.gov.hmrc.customs.notificationpushretry.model
 
-case class BlockedCount(pushNotificationBlockedCount: Int)
+case class ClientId(clientId: String) extends AnyVal {
+  override def toString: String = clientId
+}

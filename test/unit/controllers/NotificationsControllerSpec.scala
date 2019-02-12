@@ -16,7 +16,6 @@
 
 package unit.controllers
 
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
@@ -26,10 +25,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.controllers.NotificationsController
-import uk.gov.hmrc.customs.notificationpushretry.model.BlockedCount
+import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
 import uk.gov.hmrc.customs.notificationpushretry.validators.HeaderValidator
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
@@ -42,10 +40,12 @@ class NotificationsControllerSpec extends UnitSpec with MockitoSugar with Before
 
   "NotificationsController" should {
 
+    val clientId = ClientId("ABCD")
+
     "respond with status 200 for a processed valid request" in {
 
-      val validRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/blocked-count").withHeaders(ACCEPT -> "application/vnd.hmrc.1.0+xml", "X-Client-ID" -> "ABCD")
-      when(mockCustomsNotification.getNotifications()(any[HeaderCarrier])).thenReturn(Future.successful(BlockedCount(1)))
+      val validRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/blocked-count").withHeaders(ACCEPT -> "application/vnd.hmrc.1.0+xml", "X-Client-ID" -> clientId.toString)
+      when(mockCustomsNotification.getNotifications(clientId)).thenReturn(Future.successful(<pushNotificationBlockedCount>1</pushNotificationBlockedCount>))
 
       val result = await(controller.get().apply(validRequest))
 
@@ -54,8 +54,8 @@ class NotificationsControllerSpec extends UnitSpec with MockitoSugar with Before
 
     "respond with status 500 for when an error is returned from downstream" in {
 
-      val validRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/blocked-count").withHeaders(ACCEPT -> "application/vnd.hmrc.1.0+xml", "X-Client-ID" -> "ABCD")
-      when(mockCustomsNotification.getNotifications()(any[HeaderCarrier])).thenReturn(Future.failed(new Exception("ERROR")))
+      val validRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/blocked-count").withHeaders(ACCEPT -> "application/vnd.hmrc.1.0+xml", "X-Client-ID" -> clientId.toString)
+      when(mockCustomsNotification.getNotifications(clientId)).thenReturn(Future.failed(new Exception("ERROR")))
 
       val result = await(controller.get().apply(validRequest))
 

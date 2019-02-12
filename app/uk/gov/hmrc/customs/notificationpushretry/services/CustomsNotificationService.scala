@@ -18,14 +18,14 @@ package uk.gov.hmrc.customs.notificationpushretry.services
 
 import javax.inject.Inject
 import uk.gov.hmrc.customs.notificationpushretry.connectors.CustomsNotificationConnector
-import uk.gov.hmrc.customs.notificationpushretry.model.BlockedCount
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 
 import scala.concurrent.Future
+import scala.xml.NodeSeq
 
 class CustomsNotificationService @Inject()(customsNotificationConnector: CustomsNotificationConnector) {
 
-  def getNotifications()(implicit hc: HeaderCarrier): Future[BlockedCount] = {
-    customsNotificationConnector.getNotifications()
+  def getNotifications(clientId: ClientId): Future[NodeSeq] = {
+    customsNotificationConnector.getNotifications(clientId)
   }
 }

@@ -17,23 +17,27 @@
 package uk.gov.hmrc.customs.notificationpushretry.connectors
 
 import javax.inject.Inject
+import play.api.http.HeaderNames.ACCEPT
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import uk.gov.hmrc.customs.notificationpushretry.config.ServiceConfiguration
-import uk.gov.hmrc.customs.notificationpushretry.model.BlockedCount
+import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.Future
-import scala.xml.XML
+import scala.xml.{NodeSeq, XML}
 
 class CustomsNotificationConnector @Inject()(config: ServiceConfiguration, http: HttpClient) {
 
   private lazy val serviceBaseUrl: String = config.baseUrl("customs-notification")
 
-  def getNotifications()(implicit hc: HeaderCarrier): Future[BlockedCount] = {
+  def getNotifications(clientId: ClientId): Future[NodeSeq] = {
+
+    implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = Seq("X-Client-ID" ->  clientId.toString, ACCEPT -> "application/vnd.hmrc.1.0+xml"))
+
     http.GET[HttpResponse](s"$serviceBaseUrl/blocked-count").map(
       response => {
-          BlockedCount((XML.loadString(response.body) \\ "pushNotificationBlockedCount").text.toInt)
+          XML.loadString(response.body)
       }
     )
   }
