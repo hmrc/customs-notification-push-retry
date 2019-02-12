@@ -21,7 +21,6 @@ import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.Eventually
 import org.scalatest.mockito.MockitoSugar
-import org.xml.sax.SAXParseException
 import uk.gov.hmrc.customs.notificationpushretry.config.ServiceConfiguration
 import uk.gov.hmrc.customs.notificationpushretry.connectors.CustomsNotificationConnector
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
@@ -30,7 +29,6 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.NodeSeq
 
 class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with BeforeAndAfterEach with Eventually {
 
@@ -57,18 +55,9 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.successful(mockHttpResponse))
       when(mockHttpResponse.body).thenReturn("<pushNotificationBlockedCount>1</pushNotificationBlockedCount>")
 
-      val result: NodeSeq = await(customsNotificationConnector.getNotifications(ClientId(clientId)))
+      val result: String = await(customsNotificationConnector.getNotifications(ClientId(clientId)))
 
-      result shouldBe <pushNotificationBlockedCount>1</pushNotificationBlockedCount>
-    }
-
-    "return exception when there's a problem with the body of blocked notifications" in new Setup {
-
-      when(mockHttpClient.GET[HttpResponse](meq(s"http://customs-notification.url/blocked-count"))
-        (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.successful(mockHttpResponse))
-      when(mockHttpResponse.body).thenReturn("this is not valid xml>")
-
-      val result = intercept[SAXParseException](await(customsNotificationConnector.getNotifications(ClientId(clientId))))
+      result shouldBe "<pushNotificationBlockedCount>1</pushNotificationBlockedCount>"
     }
   }
 }

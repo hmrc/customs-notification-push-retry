@@ -45,7 +45,7 @@ class NotificationsControllerSpec extends UnitSpec with MockitoSugar with Before
     "respond with status 200 for a processed valid request" in {
 
       val validRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/blocked-count").withHeaders(ACCEPT -> "application/vnd.hmrc.1.0+xml", "X-Client-ID" -> clientId.toString)
-      when(mockCustomsNotification.getNotifications(clientId)).thenReturn(Future.successful(<pushNotificationBlockedCount>1</pushNotificationBlockedCount>))
+      when(mockCustomsNotification.getNotifications(clientId)).thenReturn(Future.successful("<pushNotificationBlockedCount>1</pushNotificationBlockedCount>"))
 
       val result = await(controller.get().apply(validRequest))
 

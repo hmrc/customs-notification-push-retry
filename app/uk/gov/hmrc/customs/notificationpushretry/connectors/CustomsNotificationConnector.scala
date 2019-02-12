@@ -25,20 +25,18 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.Future
-import scala.xml.{NodeSeq, XML}
 
 class CustomsNotificationConnector @Inject()(config: ServiceConfiguration, http: HttpClient) {
 
   private lazy val serviceBaseUrl: String = config.baseUrl("customs-notification")
 
-  def getNotifications(clientId: ClientId): Future[NodeSeq] = {
+  def getNotifications(clientId: ClientId): Future[String] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = Seq("X-Client-ID" ->  clientId.toString, ACCEPT -> "application/vnd.hmrc.1.0+xml"))
 
     http.GET[HttpResponse](s"$serviceBaseUrl/blocked-count").map(
-      response => {
-          XML.loadString(response.body)
-      }
+      response => response.body
+
     )
   }
 }

@@ -21,11 +21,10 @@ import uk.gov.hmrc.customs.notificationpushretry.connectors.CustomsNotificationC
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 
 import scala.concurrent.Future
-import scala.xml.NodeSeq
 
 class CustomsNotificationService @Inject()(customsNotificationConnector: CustomsNotificationConnector) {
 
-  def getNotifications(clientId: ClientId): Future[NodeSeq] = {
+  def getNotifications(clientId: ClientId): Future[String] = {
     customsNotificationConnector.getNotifications(clientId)
   }
 }
