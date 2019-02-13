@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.customs.notificationpushretry.controllers
 
+import akka.util.ByteString
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
+import play.api.http.{ContentTypes, HttpEntity}
+import play.api.mvc.{Action, AnyContent, ResponseHeader, Result}
+import play.api.mvc.Results.Ok
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.ErrorInternalServerError
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
@@ -38,13 +41,34 @@ class NotificationsController @Inject()(customsNotificationService: CustomsNotif
 
       val clientId = ClientId(request.headers.get("X-Client-ID").get) // Guaranteed to be populated.
 
-      logger.info(s"Getting blocked count for client id: $clientId")
+      logger.info(s"Getting blocked count for client id: ${clientId.toString}")
 
       customsNotificationService.getNotifications(clientId).map(f => Ok(f).as(XML))
         .recover {
           case NonFatal(e) =>
             logger.error(s"Error obtaining blocked count: ${e.getMessage}", e)
-            ErrorResponse.ErrorInternalServerError.XmlResult
+            ErrorInternalServerError.XmlResult
         }
   }
+
+  def deleteBlocked():Action[AnyContent] =
+    (headerValidator.validateAcceptHeader andThen headerValidator.validateXClientIdHeader).async { implicit request =>
+
+      val clientId = ClientId(request.headers.get("X-Client-ID").get) // Guaranteed to be populated.
+
+      logger.info(s"called delete blocked-flag for client id: ${clientId.toString}")
+
+      customsNotificationService.deleteBlocked(clientId).map { status =>
+        logger.debug(s"delete response status was $status")
+        status match {
+          case NO_CONTENT => NoContent
+          case NOT_FOUND => NotFound
+        }
+      }.recover {
+        case NonFatal(e) =>
+          logger.error(s"unable to delete blocked flags due to ${e.getMessage}", e)
+          ErrorInternalServerError.XmlResult
+        }
+    }
+
 }

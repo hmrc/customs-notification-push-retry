@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.customs.notificationpushretry.validators
 
-import play.api.mvc.{ActionBuilder, Request, Result, Results}
 import play.api.http.HeaderNames._
-import play.api.http.Status._
+import play.api.mvc.{ActionBuilder, Request, Result, Results}
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, errorBadRequest}
 
 import scala.concurrent.Future
 
@@ -38,6 +38,6 @@ class HeaderValidator extends Results {
   private val acceptHeaderRules: Option[String] => Boolean = _ contains "application/vnd.hmrc.1.0+xml"
   private val xClientIdHeaderRules: Option[String] => Boolean = _ exists (_ => true)
 
-  def validateAcceptHeader: ActionBuilder[Request] = validateHeader(acceptHeaderRules, ACCEPT, Status(NOT_ACCEPTABLE))
-  def validateXClientIdHeader: ActionBuilder[Request] = validateHeader(xClientIdHeaderRules, "X-Client-ID", Status(INTERNAL_SERVER_ERROR))
+  def validateAcceptHeader: ActionBuilder[Request] = validateHeader(acceptHeaderRules, ACCEPT, ErrorAcceptHeaderInvalid.XmlResult)
+  def validateXClientIdHeader: ActionBuilder[Request] = validateHeader(xClientIdHeaderRules, "X-Client-ID", errorBadRequest("X-Client-ID required").XmlResult)
 }

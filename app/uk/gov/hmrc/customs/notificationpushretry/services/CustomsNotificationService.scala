@@ -19,6 +19,7 @@ package uk.gov.hmrc.customs.notificationpushretry.services
 import javax.inject.Inject
 import uk.gov.hmrc.customs.notificationpushretry.connectors.CustomsNotificationConnector
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
+import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.Future
 
@@ -26,5 +27,9 @@ class CustomsNotificationService @Inject()(customsNotificationConnector: Customs
 
   def getNotifications(clientId: ClientId): Future[String] = {
     customsNotificationConnector.getNotifications(clientId)
+  }
+
+  def deleteBlocked(clientId: ClientId): Future[Int] = {
+    customsNotificationConnector.deleteBlocked(clientId)
   }
 }

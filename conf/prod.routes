@@ -2,3 +2,4 @@
 ->            /                                                 definition.Routes
 
 GET           /blocked-count                                    @uk.gov.hmrc.customs.notificationpushretry.controllers.NotificationsController.get
+DELETE        /blocked-flag                                     @uk.gov.hmrc.customs.notificationpushretry.controllers.NotificationsController.deleteBlocked

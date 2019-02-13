@@ -19,24 +19,48 @@ package uk.gov.hmrc.customs.notificationpushretry.connectors
 import javax.inject.Inject
 import play.api.http.HeaderNames.ACCEPT
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.mvc.Http.Status.NOT_FOUND
+import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.config.ServiceConfiguration
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.Future
 
-class CustomsNotificationConnector @Inject()(config: ServiceConfiguration, http: HttpClient) {
+class CustomsNotificationConnector @Inject()(config: ServiceConfiguration,
+                                             http: HttpClient,
+                                             logger: CdsLogger) {
 
   private lazy val serviceBaseUrl: String = config.baseUrl("customs-notification")
 
   def getNotifications(clientId: ClientId): Future[String] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrier(extraHeaders = Seq("X-Client-ID" ->  clientId.toString, ACCEPT -> "application/vnd.hmrc.1.0+xml"))
+    implicit val hc: HeaderCarrier = headerCarrier(clientId)
 
-    http.GET[HttpResponse](s"$serviceBaseUrl/blocked-count").map(
+    http.GET[HttpResponse](s"$serviceBaseUrl/customs-notification/blocked-count").map {
       response => response.body
+    }
+  }
 
-    )
+  def deleteBlocked(clientId: ClientId): Future[Int] = {
+
+    implicit val hc: HeaderCarrier = headerCarrier(clientId)
+    val url = s"$serviceBaseUrl/customs-notification/blocked-flag"
+    logger.debug(s"calling $url")
+    http.DELETE[HttpResponse](url).map {
+      response => response.status
+    }.recoverWith {
+      case _ : NotFoundException => Future.successful(NOT_FOUND)
+    }
+    .recoverWith {
+      case e: Throwable =>
+        logger.error(s"call to notification service failed due to ${e.getMessage}. DELETE url=$url")
+        Future.failed(e)
+    }
+  }
+
+  private def headerCarrier(clientId: ClientId):HeaderCarrier = {
+    HeaderCarrier(extraHeaders = Seq("X-Client-ID" ->  clientId.toString, ACCEPT -> "application/vnd.hmrc.1.0+xml"))
   }
 }
