@@ -1,4 +1,5 @@
 ->            /                                                 health.Routes
 ->            /                                                 definition.Routes
 
-GET           /blocked-count                                    @uk.gov.hmrc.customs.notificationpushretry.controllers.NotificationsController.get
+GET           /blocked-count                                    @uk.gov.hmrc.customs.notificationpushretry.controllers.CustomsNotificationController.get
+DELETE        /blocked-flag                                     @uk.gov.hmrc.customs.notificationpushretry.controllers.CustomsNotificationController.deleteBlocked

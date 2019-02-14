@@ -18,7 +18,7 @@ package uk.gov.hmrc.customs.notificationpushretry.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorInternalServerError, ErrorNotFound}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
@@ -29,22 +29,43 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.control.NonFatal
 
 @Singleton
-class NotificationsController @Inject()(customsNotificationService: CustomsNotificationService,
-                                        headerValidator: HeaderValidator,
-                                        logger: CdsLogger) extends BaseController {
+class CustomsNotificationController @Inject()(customsNotificationService: CustomsNotificationService,
+                                              headerValidator: HeaderValidator,
+                                              logger: CdsLogger) extends BaseController {
 
   def get(): Action[AnyContent] =
     (headerValidator.validateAcceptHeader andThen headerValidator.validateXClientIdHeader).async { implicit request =>
 
       val clientId = ClientId(request.headers.get("X-Client-ID").get) // Guaranteed to be populated.
 
-      logger.info(s"Getting blocked count for client id: $clientId")
+      logger.info(s"Getting blocked count for client id: ${clientId.toString}")
 
       customsNotificationService.getNotifications(clientId).map(f => Ok(f).as(XML))
         .recover {
           case NonFatal(e) =>
             logger.error(s"Error obtaining blocked count: ${e.getMessage}", e)
-            ErrorResponse.ErrorInternalServerError.XmlResult
+            ErrorInternalServerError.XmlResult
         }
   }
+
+  def deleteBlocked():Action[AnyContent] =
+    (headerValidator.validateAcceptHeader andThen headerValidator.validateXClientIdHeader).async { implicit request =>
+
+      val clientId = ClientId(request.headers.get("X-Client-ID").get) // Guaranteed to be populated.
+
+      logger.info(s"calling delete blocked-flag for client id: ${clientId.toString}")
+
+      customsNotificationService.deleteBlocked(clientId).map { status =>
+        logger.debug(s"delete response status was $status")
+        status match {
+          case NO_CONTENT => NoContent
+          case NOT_FOUND => ErrorNotFound.XmlResult
+        }
+      }.recover {
+        case NonFatal(e) =>
+          logger.error(s"unable to delete blocked flags due to ${e.getMessage}", e)
+          ErrorInternalServerError.XmlResult
+        }
+    }
+
 }

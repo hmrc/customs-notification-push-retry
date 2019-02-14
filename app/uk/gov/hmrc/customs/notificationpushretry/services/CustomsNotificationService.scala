@@ -27,4 +27,8 @@ class CustomsNotificationService @Inject()(customsNotificationConnector: Customs
   def getNotifications(clientId: ClientId): Future[String] = {
     customsNotificationConnector.getNotifications(clientId)
   }
+
+  def deleteBlocked(clientId: ClientId): Future[Int] = {
+    customsNotificationConnector.deleteBlocked(clientId)
+  }
 }
