@@ -16,8 +16,7 @@ This service provides endpoints for the counting and deleting of flags that bloc
 
     curl -v -X GET http://customs-notification-push-retry-host/blocked-count \
         -H 'X-Client-ID: AClientId' \
-        -H 'Accept: application/vnd.hmrc.1.0+xml' \
-        -H 'Authorization: Bearer {TOKEN}'
+        -H 'Accept: application/vnd.hmrc.1.0+xml'
 
 For successful responses the status is 200 OK along with an xml body specifying the count e.g.
     
@@ -28,8 +27,7 @@ For successful responses the status is 200 OK along with an xml body specifying 
 
     curl -X DELETE http://customs-notification-push-retry-host/blocked-flag \
         -H 'X-Client-ID: AClientId' \
-        -H 'Accept: application/vnd.hmrc.1.0+xml' \
-        -H 'Authorization: Bearer {TOKEN}'
+        -H 'Accept: application/vnd.hmrc.1.0+xml'
 
 For successful responses the status is 204 NO CONTENT. For requests where the clientId has no blocked requests then a 404 NOT FOUND is returned.
 
