@@ -16,12 +16,9 @@
 
 package uk.gov.hmrc.customs.notificationpushretry.controllers
 
-import akka.util.ByteString
 import javax.inject.{Inject, Singleton}
-import play.api.http.{ContentTypes, HttpEntity}
-import play.api.mvc.{Action, AnyContent, ResponseHeader, Result}
-import play.api.mvc.Results.Ok
-import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.ErrorInternalServerError
+import play.api.mvc.{Action, AnyContent}
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorInternalServerError, ErrorNotFound}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
@@ -32,9 +29,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.control.NonFatal
 
 @Singleton
-class NotificationsController @Inject()(customsNotificationService: CustomsNotificationService,
-                                        headerValidator: HeaderValidator,
-                                        logger: CdsLogger) extends BaseController {
+class CustomsNotificationController @Inject()(customsNotificationService: CustomsNotificationService,
+                                              headerValidator: HeaderValidator,
+                                              logger: CdsLogger) extends BaseController {
 
   def get(): Action[AnyContent] =
     (headerValidator.validateAcceptHeader andThen headerValidator.validateXClientIdHeader).async { implicit request =>
@@ -56,13 +53,13 @@ class NotificationsController @Inject()(customsNotificationService: CustomsNotif
 
       val clientId = ClientId(request.headers.get("X-Client-ID").get) // Guaranteed to be populated.
 
-      logger.info(s"called delete blocked-flag for client id: ${clientId.toString}")
+      logger.info(s"calling delete blocked-flag for client id: ${clientId.toString}")
 
       customsNotificationService.deleteBlocked(clientId).map { status =>
         logger.debug(s"delete response status was $status")
         status match {
           case NO_CONTENT => NoContent
-          case NOT_FOUND => NotFound
+          case NOT_FOUND => ErrorNotFound.XmlResult
         }
       }.recover {
         case NonFatal(e) =>

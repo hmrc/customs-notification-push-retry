@@ -38,7 +38,7 @@ class CustomsNotificationConnector @Inject()(config: ServiceConfiguration,
 
     implicit val hc: HeaderCarrier = headerCarrier(clientId)
 
-    http.GET[HttpResponse](s"$serviceBaseUrl/customs-notification/blocked-count").map {
+    http.GET[HttpResponse](s"$serviceBaseUrl/blocked-count").map {
       response => response.body
     }
   }
@@ -46,7 +46,8 @@ class CustomsNotificationConnector @Inject()(config: ServiceConfiguration,
   def deleteBlocked(clientId: ClientId): Future[Int] = {
 
     implicit val hc: HeaderCarrier = headerCarrier(clientId)
-    val url = s"$serviceBaseUrl/customs-notification/blocked-flag"
+    val url = s"$serviceBaseUrl/blocked-flag"
+
     logger.debug(s"calling $url")
     http.DELETE[HttpResponse](url).map {
       response => response.status

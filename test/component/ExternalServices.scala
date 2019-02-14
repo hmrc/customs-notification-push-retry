@@ -19,25 +19,32 @@ package component
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.http.HeaderNames.ACCEPT
-import play.api.http.Status.BAD_REQUEST
 import util.WireMockRunner
+
+import scala.xml.NodeSeq
 
 trait ExternalServices extends WireMockRunner {
 
-  val clientId = "client-id"
-  val xClientIdHeader = "X-Client-ID"
+  val clientId: String = "client-id"
+  val xClientIdHeader: String = "X-Client-ID"
 
-  def stubForPushNotificationBlockedCount(): StubMapping = {
+  def stubForGetBlockedFlagCount(status: Int, body: NodeSeq): StubMapping = {
     stubFor(get(urlMatching("/blocked-count"))
       .withHeader(xClientIdHeader, equalTo(clientId))
       .withHeader(ACCEPT, equalTo("application/vnd.hmrc.1.0+xml"))
-      .willReturn(okXml("<pushNotificationBlockedCount>100</pushNotificationBlockedCount>")))
+      .willReturn(
+        aResponse()
+          .withStatus(status)
+          .withBody(body.toString())))
   }
 
-  def stubFor400ErrorPushNotificationBlockedCount(): StubMapping = {
-    stubFor(get(urlMatching("/blocked-count"))
+  def stubForDeleteBlockedFlagCount(status: Int, body: NodeSeq): StubMapping = {
+    stubFor(delete(urlMatching("/blocked-flag"))
       .withHeader(xClientIdHeader, equalTo(clientId))
       .withHeader(ACCEPT, equalTo("application/vnd.hmrc.1.0+xml"))
-      .willReturn(aResponse().withStatus(BAD_REQUEST)))
+      .willReturn(
+        aResponse()
+          .withStatus(status)
+          .withBody(body.toString())))
   }
 }
