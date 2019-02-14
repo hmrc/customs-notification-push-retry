@@ -52,9 +52,7 @@ class CustomsNotificationConnector @Inject()(config: ServiceConfiguration,
     http.DELETE[HttpResponse](url).map {
       response => response.status
     }.recoverWith {
-      case _ : NotFoundException => Future.successful(NOT_FOUND)
-    }
-    .recoverWith {
+      case _: NotFoundException => Future.successful(NOT_FOUND)
       case e: Throwable =>
         logger.error(s"call to notification service failed due to ${e.getMessage}. DELETE url=$url")
         Future.failed(e)
