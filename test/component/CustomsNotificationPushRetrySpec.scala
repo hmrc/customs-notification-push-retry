@@ -19,13 +19,14 @@ package component
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock.{status => _, _}
+import component.CustomsNotificationExternalServicesConfig.{BlockedCountEndpoint, BlockedFlagEndpointWithContext, BlockedFlagEndpoint, BlockedCountEndpointWithContext}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.util.control.NonFatal
-import scala.xml.{Node, NodeSeq, Utility, XML}
 import scala.xml.Utility.trim
+import scala.xml.{Node, NodeSeq, Utility, XML}
 
 class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServices {
 
@@ -60,18 +61,16 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       |</errorResponse>
     """.stripMargin
 
-  private val countBlockedEndpoint = "/blocked-count"
-  private val deleteBlockedEndpoint = "/blocked-flag"
-
   val validHeaders = Seq(ACCEPT -> "application/vnd.hmrc.1.0+xml", xClientIdHeader -> clientId)
 
-  private val validCountRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", countBlockedEndpoint).
+  private val validCountRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", BlockedCountEndpoint).
     withHeaders(validHeaders: _*)
 
-  private val validDeleteRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("DELETE", deleteBlockedEndpoint).
+  private val validDeleteRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("DELETE", BlockedFlagEndpoint).
     withHeaders(validHeaders: _*)
 
   feature("count blocked notifications via the customs notification service") {
+
     scenario("Successful GET and 3rd party receives the blocked notification count") {
       info("As a 3rd Party")
       info("I want to successfully count notification blocked flags by client id")
@@ -91,7 +90,7 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       contentAsString(result) shouldBe expectedBody.toString()
 
       And("The count of blocked notifications has been called")
-      verify(getRequestedFor(urlMatching("/blocked-count")))
+      verify(getRequestedFor(urlMatching(BlockedCountEndpointWithContext)))
     }
 
     scenario("Failed GET and 3rd party receives an error message") {
@@ -109,12 +108,13 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       string2xml(contentAsString(result)) shouldBe string2xml(InternalServerError)
 
       And("The count of blocked notifications has been called")
-      verify(getRequestedFor(urlMatching("/blocked-count")))
+      verify(getRequestedFor(urlMatching(BlockedCountEndpointWithContext)))
     }
 
   }
 
   feature("delete blocked notification flags via the customs notification service") {
+
     scenario("Successful DELETE and 3rd party receives confirmation") {
       Given("There are notifications with blocked flags in customs notification")
       stubForDeleteBlockedFlagCount(NO_CONTENT, NodeSeq.Empty)
@@ -129,7 +129,7 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       contentAsString(result) shouldBe empty
 
       And("The delete blocked notification flags has been called")
-      verify(deleteRequestedFor(urlMatching("/blocked-flag")))
+      verify(deleteRequestedFor(urlMatching(BlockedFlagEndpointWithContext)))
     }
 
     scenario("Failed DELETE and 3rd party receives error") {
@@ -146,7 +146,7 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       string2xml(contentAsString(result)) shouldBe string2xml(InternalServerError)
 
       And("The delete blocked notification flags has been called")
-      verify(deleteRequestedFor(urlMatching("/blocked-flag")))
+      verify(deleteRequestedFor(urlMatching(BlockedFlagEndpointWithContext)))
     }
 
   }
