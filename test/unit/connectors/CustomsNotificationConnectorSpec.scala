@@ -23,8 +23,8 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.mockito.MockitoSugar
 import play.api.test.Helpers._
 import play.mvc.Http.Status.NOT_FOUND
+import uk.gov.hmrc.customs.api.common.config.{ServiceConfig, ServiceConfigProvider}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notificationpushretry.config.ServiceConfiguration
 import uk.gov.hmrc.customs.notificationpushretry.connectors.CustomsNotificationConnector
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.http._
@@ -41,14 +41,14 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
     val X_CLIENT_ID_HEADER_NAME = "X-Client-ID"
     val clientId = "client-id"
 
-    val mockServiceConfiguration: ServiceConfiguration = mock[ServiceConfiguration]
+    val mockServiceConfiguration: ServiceConfigProvider = mock[ServiceConfigProvider]
     val mockHttpClient: HttpClient = mock[HttpClient]
-    val mockHttpResponse = mock[HttpResponse]
-    val mockLogger = mock[CdsLogger]
+    val mockHttpResponse: HttpResponse = mock[HttpResponse]
+    val mockLogger: CdsLogger = mock[CdsLogger]
 
     val customsNotificationConnector = new CustomsNotificationConnector(mockServiceConfiguration, mockHttpClient, mockLogger)
 
-    when(mockServiceConfiguration.baseUrl("customs-notification")).thenReturn("http://customs-notification.url")
+    when(mockServiceConfiguration.getConfig("customs-notification")).thenReturn(ServiceConfig("http://customs-notification.url/customs-notification", None, ""))
 
   }
 
@@ -56,7 +56,7 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
 
     "return a count of blocked notifications" in new Setup {
 
-      when(mockHttpClient.GET[HttpResponse](meq(s"http://customs-notification.url/blocked-count"))
+      when(mockHttpClient.GET[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-count"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.successful(mockHttpResponse))
       when(mockHttpResponse.body).thenReturn("<pushNotificationBlockedCount>1</pushNotificationBlockedCount>")
 
@@ -67,19 +67,19 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
 
     "return correct status when deleting blocked flags" in new Setup {
 
-      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/blocked-flag"))
+      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-flag"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.successful(mockHttpResponse))
       when(mockHttpResponse.status).thenReturn(NO_CONTENT)
 
       val result: Int = await(customsNotificationConnector.deleteBlocked(ClientId(clientId)))
 
       result shouldBe NO_CONTENT
-      logVerifier(mockLogger, "debug", "calling http://customs-notification.url/blocked-flag")
+      logVerifier(mockLogger, "debug", "calling http://customs-notification.url/customs-notification/blocked-flag")
     }
 
     "return correct status when no blocked flags are deleted" in new Setup {
 
-      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/blocked-flag"))
+      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-flag"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.failed(new NotFoundException("not found")))
 
       val result: Int = await(customsNotificationConnector.deleteBlocked(ClientId(clientId)))
@@ -88,10 +88,10 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
 
     "return failure when call to upstream service results in failure" in new Setup {
 
-      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/blocked-flag"))
+      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-flag"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.failed(new RuntimeException("Fail")))
 
-      val caught = intercept[RuntimeException] {
+      val caught: RuntimeException = intercept[RuntimeException] {
         await(customsNotificationConnector.deleteBlocked(ClientId(clientId)))
       }
 
@@ -99,7 +99,7 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
     }
   }
 
-  private def logVerifier(mockLogger: CdsLogger, logLevel: String, logText: String) = {
+  private def logVerifier(mockLogger: CdsLogger, logLevel: String, logText: String): Unit = {
     PassByNameVerifier(mockLogger, logLevel)
       .withByNameParam(logText)
       .verify()

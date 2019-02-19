@@ -24,8 +24,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.util.control.NonFatal
-import scala.xml.{Node, NodeSeq, Utility, XML}
 import scala.xml.Utility.trim
+import scala.xml.{Node, NodeSeq, Utility, XML}
 
 class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServices {
 
@@ -91,7 +91,7 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       contentAsString(result) shouldBe expectedBody.toString()
 
       And("The count of blocked notifications has been called")
-      verify(getRequestedFor(urlMatching("/blocked-count")))
+      verify(getRequestedFor(urlMatching("/customs-notification/blocked-count")))
     }
 
     scenario("Failed GET and 3rd party receives an error message") {
@@ -109,7 +109,7 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       string2xml(contentAsString(result)) shouldBe string2xml(InternalServerError)
 
       And("The count of blocked notifications has been called")
-      verify(getRequestedFor(urlMatching("/blocked-count")))
+      verify(getRequestedFor(urlMatching("/customs-notification/blocked-count")))
     }
 
   }
@@ -129,7 +129,7 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       contentAsString(result) shouldBe empty
 
       And("The delete blocked notification flags has been called")
-      verify(deleteRequestedFor(urlMatching("/blocked-flag")))
+      verify(deleteRequestedFor(urlMatching("/customs-notification/blocked-flag")))
     }
 
     scenario("Failed DELETE and 3rd party receives error") {
@@ -146,7 +146,7 @@ class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServic
       string2xml(contentAsString(result)) shouldBe string2xml(InternalServerError)
 
       And("The delete blocked notification flags has been called")
-      verify(deleteRequestedFor(urlMatching("/blocked-flag")))
+      verify(deleteRequestedFor(urlMatching("/customs-notification/blocked-flag")))
     }
 
   }

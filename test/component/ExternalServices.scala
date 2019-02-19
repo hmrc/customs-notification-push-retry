@@ -29,7 +29,7 @@ trait ExternalServices extends WireMockRunner {
   val xClientIdHeader: String = "X-Client-ID"
 
   def stubForGetBlockedFlagCount(status: Int, body: NodeSeq): StubMapping = {
-    stubFor(get(urlMatching("/blocked-count"))
+    stubFor(get(urlMatching("\\/customs-notification\\/blocked-count"))
       .withHeader(xClientIdHeader, equalTo(clientId))
       .withHeader(ACCEPT, equalTo("application/vnd.hmrc.1.0+xml"))
       .willReturn(
@@ -39,7 +39,7 @@ trait ExternalServices extends WireMockRunner {
   }
 
   def stubForDeleteBlockedFlagCount(status: Int, body: NodeSeq): StubMapping = {
-    stubFor(delete(urlMatching("/blocked-flag"))
+    stubFor(delete(urlMatching("\\/customs-notification\\/blocked-flag"))
       .withHeader(xClientIdHeader, equalTo(clientId))
       .withHeader(ACCEPT, equalTo("application/vnd.hmrc.1.0+xml"))
       .willReturn(
