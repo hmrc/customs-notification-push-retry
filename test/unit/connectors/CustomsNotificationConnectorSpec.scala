@@ -16,6 +16,7 @@
 
 package unit.connectors
 
+import component.CustomsNotificationExternalServicesConfig.{BlockedFlagEndpointWithContext, BlockedCountEndpointWithContext}
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -56,7 +57,7 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
 
     "return a count of blocked notifications" in new Setup {
 
-      when(mockHttpClient.GET[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-count"))
+      when(mockHttpClient.GET[HttpResponse](meq(s"http://customs-notification.url$BlockedCountEndpointWithContext"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.successful(mockHttpResponse))
       when(mockHttpResponse.body).thenReturn("<pushNotificationBlockedCount>1</pushNotificationBlockedCount>")
 
@@ -67,19 +68,19 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
 
     "return correct status when deleting blocked flags" in new Setup {
 
-      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-flag"))
+      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url$BlockedFlagEndpointWithContext"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.successful(mockHttpResponse))
       when(mockHttpResponse.status).thenReturn(NO_CONTENT)
 
       val result: Int = await(customsNotificationConnector.deleteBlocked(ClientId(clientId)))
 
       result shouldBe NO_CONTENT
-      logVerifier(mockLogger, "debug", "calling http://customs-notification.url/customs-notification/blocked-flag")
+      logVerifier(mockLogger, "debug", s"calling http://customs-notification.url$BlockedFlagEndpointWithContext")
     }
 
     "return correct status when no blocked flags are deleted" in new Setup {
 
-      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-flag"))
+      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url$BlockedFlagEndpointWithContext"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.failed(new NotFoundException("not found")))
 
       val result: Int = await(customsNotificationConnector.deleteBlocked(ClientId(clientId)))
@@ -88,7 +89,7 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
 
     "return failure when call to upstream service results in failure" in new Setup {
 
-      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url/customs-notification/blocked-flag"))
+      when(mockHttpClient.DELETE[HttpResponse](meq(s"http://customs-notification.url$BlockedFlagEndpointWithContext"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.failed(new RuntimeException("Fail")))
 
       val caught: RuntimeException = intercept[RuntimeException] {
