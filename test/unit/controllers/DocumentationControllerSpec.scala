@@ -19,7 +19,7 @@ package unit.controllers
 import java.io.FileNotFoundException
 
 import akka.stream.Materializer
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.Status._
 import play.api.test.FakeRequest
 import uk.gov.hmrc.customs.notificationpushretry.controllers.DocumentationController

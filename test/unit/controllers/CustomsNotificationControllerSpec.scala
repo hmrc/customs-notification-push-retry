@@ -18,10 +18,10 @@ package unit.controllers
 
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HeaderNames.ACCEPT
 import play.api.mvc._
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.controllers.CustomsNotificationController
@@ -39,7 +39,8 @@ class CustomsNotificationControllerSpec extends UnitSpec
 
   private val mockService: CustomsNotificationService = mock[CustomsNotificationService]
   private val mockLogger: CdsLogger = mock[CdsLogger]
-  private val controller: CustomsNotificationController = new CustomsNotificationController(mockService, new HeaderValidator(), mockLogger)
+  private val controllerComponents   = Helpers.stubControllerComponents()
+  private val controller: CustomsNotificationController = new CustomsNotificationController(mockService, new HeaderValidator(controllerComponents), controllerComponents, mockLogger)
   private val clientId: ClientId = ClientId("ABCD")
   private val getRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/blocked-count").withHeaders(ACCEPT -> "application/vnd.hmrc.1.0+xml", "X-Client-ID" -> clientId.toString)
   private val deleteRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("DELETE", "/blocked-flag").withHeaders(ACCEPT -> "application/vnd.hmrc.1.0+xml", "X-Client-ID" -> clientId.toString)

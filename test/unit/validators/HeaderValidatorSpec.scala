@@ -19,13 +19,13 @@ package unit.validators
 import play.api.http.HeaderNames.ACCEPT
 import play.api.mvc.Results.Ok
 import play.api.mvc.{Action, AnyContent}
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorInternalServerError}
 import uk.gov.hmrc.customs.notificationpushretry.validators.HeaderValidator
 import uk.gov.hmrc.play.test.UnitSpec
 
 class HeaderValidatorSpec extends UnitSpec {
-  private val validator = new HeaderValidator
+  private val validator = new HeaderValidator(Helpers.stubControllerComponents())
   private val expectedResult = Ok
 
   private val validateAccept: Action[AnyContent] = validator.validateAcceptHeader {

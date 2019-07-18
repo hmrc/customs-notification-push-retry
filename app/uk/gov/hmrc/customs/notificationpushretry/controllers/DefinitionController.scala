@@ -16,17 +16,17 @@
 
 package uk.gov.hmrc.customs.notificationpushretry.controllers
 
-import uk.gov.hmrc.customs.notificationpushretry.config.AppContext
 import javax.inject.{Inject, Singleton}
 import play.api.http.{ContentTypes, MimeTypes}
-import play.api.mvc.{Action, AnyContent, Codec}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.mvc.{Action, AnyContent, Codec, ControllerComponents}
+import uk.gov.hmrc.customs.notificationpushretry.config.AppContext
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import views.txt
 
 import scala.concurrent.Future
 
 @Singleton
-class DefinitionController @Inject()(appContext: AppContext) extends BaseController {
+class DefinitionController @Inject()(appContext: AppContext, cc: ControllerComponents) extends BackendController(cc) {
 
   def get(): Action[AnyContent] = Action.async {
     Future.successful(Ok(txt.definition(appContext.apiContext)).as(ContentTypes.withCharset(MimeTypes.JSON)(Codec.utf_8)))

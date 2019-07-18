@@ -16,16 +16,19 @@
 
 package uk.gov.hmrc.customs.notificationpushretry.validators
 
+import javax.inject.Inject
 import play.api.http.HeaderNames._
-import play.api.mvc.{ActionBuilder, Request, Result, Results}
+import play.api.mvc.{ActionBuilder, AnyContent, BodyParser, ControllerComponents, Request, Result, Results}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorInternalServerError}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class HeaderValidator extends Results {
+class HeaderValidator @Inject()(cc: ControllerComponents) extends Results {
 
-  private def validateHeader(rules: Option[String] => Boolean, headerName: String, error: Result): ActionBuilder[Request] =
-    new ActionBuilder[Request] {
+  private def validateHeader(rules: Option[String] => Boolean, headerName: String, error: Result): ActionBuilder[Request, AnyContent] =
+    new ActionBuilder[Request, AnyContent] {
+      override protected def executionContext: ExecutionContext = cc.executionContext
+      override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
       override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
         if (rules(request.headers.get(headerName))) {
           block(request)
@@ -38,6 +41,6 @@ class HeaderValidator extends Results {
   private val acceptHeaderRules: Option[String] => Boolean = _ contains "application/vnd.hmrc.1.0+xml"
   private val xClientIdHeaderRules: Option[String] => Boolean = _ exists (_ => true)
 
-  def validateAcceptHeader: ActionBuilder[Request] = validateHeader(acceptHeaderRules, ACCEPT, ErrorAcceptHeaderInvalid.XmlResult)
-  def validateXClientIdHeader: ActionBuilder[Request] = validateHeader(xClientIdHeaderRules, "X-Client-ID", ErrorInternalServerError.XmlResult)
+  def validateAcceptHeader: ActionBuilder[Request, AnyContent] = validateHeader(acceptHeaderRules, ACCEPT, ErrorAcceptHeaderInvalid.XmlResult)
+  def validateXClientIdHeader: ActionBuilder[Request, AnyContent] = validateHeader(xClientIdHeaderRules, "X-Client-ID", ErrorInternalServerError.XmlResult)
 }
