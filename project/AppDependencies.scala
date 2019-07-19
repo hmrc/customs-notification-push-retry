@@ -7,7 +7,7 @@ object AppDependencies {
   private val scalatestplusVersion = "3.1.2"
   private val mockitoVersion = "3.0.0"
   private val wireMockVersion = "2.23.2"
-  private val customsApiCommonVersion = "1.42.0-SNAPSHOT"
+  private val customsApiCommonVersion = "1.42.0"
   private val circuitBreakerVersion = "3.3.0"
   private val testScope = "test,it"
 
