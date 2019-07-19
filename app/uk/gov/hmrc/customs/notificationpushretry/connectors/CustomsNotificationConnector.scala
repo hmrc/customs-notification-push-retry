@@ -18,7 +18,6 @@ package uk.gov.hmrc.customs.notificationpushretry.connectors
 
 import javax.inject.Inject
 import play.api.http.HeaderNames.ACCEPT
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.mvc.Http.Status.NOT_FOUND
 import uk.gov.hmrc.customs.api.common.config.ServiceConfigProvider
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
@@ -26,11 +25,12 @@ import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class CustomsNotificationConnector @Inject()(config: ServiceConfigProvider,
                                              http: HttpClient,
-                                             logger: CdsLogger) {
+                                             logger: CdsLogger)
+                                            (implicit ec: ExecutionContext) {
 
   private lazy val serviceBaseUrl: String = config.getConfig("customs-notification").url
 

@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.customs.notificationpushretry.controllers
 
-import controllers.AssetsBuilder
+import controllers.Assets
 import javax.inject.{Inject, Singleton}
-import play.api.http.HttpErrorHandler
-import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 @Singleton
-class DocumentationController @Inject()(errorHandler: HttpErrorHandler) extends AssetsBuilder(errorHandler)
-  with BaseController {
+class DocumentationController @Inject()(assets: Assets, cc: ControllerComponents)
+  extends BackendController(cc) {
 
   def conf(version: String, file: String): Action[AnyContent] = {
-    super.at(s"/public/api/conf/$version", file)
+    assets.at(s"/public/api/conf/$version", file)
   }
 
 }

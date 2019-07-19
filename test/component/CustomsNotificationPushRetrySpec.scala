@@ -30,7 +30,6 @@ import scala.xml.{Node, NodeSeq, Utility, XML}
 
 class CustomsNotificationPushRetrySpec extends ComponentSpec with ExternalServices {
 
-
   override val clientId: String = UUID.randomUUID().toString
 
   override def beforeAll(): Unit = {

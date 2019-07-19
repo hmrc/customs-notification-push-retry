@@ -16,12 +16,13 @@
 
 package unit.connectors
 
-import component.CustomsNotificationExternalServicesConfig.{BlockedFlagEndpointWithContext, BlockedCountEndpointWithContext}
+import component.CustomsNotificationExternalServicesConfig.{BlockedCountEndpointWithContext, BlockedFlagEndpointWithContext}
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.Eventually
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
+import play.api.test.Helpers
 import play.api.test.Helpers._
 import play.mvc.Http.Status.NOT_FOUND
 import uk.gov.hmrc.customs.api.common.config.{ServiceConfig, ServiceConfigProvider}
@@ -46,6 +47,7 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
     val mockHttpClient: HttpClient = mock[HttpClient]
     val mockHttpResponse: HttpResponse = mock[HttpResponse]
     val mockLogger: CdsLogger = mock[CdsLogger]
+    implicit def ec: ExecutionContext = Helpers.stubControllerComponents().executionContext
 
     val customsNotificationConnector = new CustomsNotificationConnector(mockServiceConfiguration, mockHttpClient, mockLogger)
 

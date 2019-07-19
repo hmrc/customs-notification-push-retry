@@ -20,7 +20,7 @@ import akka.stream.Materializer
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.customs.notificationpushretry.config.AppContext
 import uk.gov.hmrc.customs.notificationpushretry.controllers.DefinitionController
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
@@ -32,7 +32,7 @@ class DefinitionControllerSpec extends UnitSpec with WithFakeApplication {
 
   private val apiContext = "context"
   private val appContext = new AppContext(Configuration("api.context" -> apiContext))
-  private val controller = new DefinitionController(appContext)
+  private val controller = new DefinitionController(appContext, Helpers.stubControllerComponents())
 
   "DefinitionController.definition" should {
     lazy val result = getDefinition(controller)

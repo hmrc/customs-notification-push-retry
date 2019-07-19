@@ -17,13 +17,13 @@
 package uk.gov.hmrc.customs.notificationpushretry.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorInternalServerError, ErrorNotFound}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
 import uk.gov.hmrc.customs.notificationpushretry.validators.HeaderValidator
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.control.NonFatal
@@ -31,7 +31,8 @@ import scala.util.control.NonFatal
 @Singleton
 class CustomsNotificationController @Inject()(customsNotificationService: CustomsNotificationService,
                                               headerValidator: HeaderValidator,
-                                              logger: CdsLogger) extends BaseController {
+                                              cc: ControllerComponents,
+                                              logger: CdsLogger) extends BackendController(cc) {
 
   def get(): Action[AnyContent] =
     (headerValidator.validateAcceptHeader andThen headerValidator.validateXClientIdHeader).async { implicit request =>
