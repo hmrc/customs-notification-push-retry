@@ -15,18 +15,17 @@
  */
 
 import AppDependencies._
-import play.sbt.routes.RoutesKeys._
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt.{Resolver, _}
 import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
 import uk.gov.hmrc.PublishingSettings._
+import uk.gov.hmrc.gitstamp.GitStampPlugin._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
 name := "customs-notification-push-retry"
-
+scalaVersion := "2.12.10"
 targetJvm := "jvm-1.8"
-
 
 lazy val allResolvers = resolvers ++= Seq(
   Resolver.bintrayRepo("hmrc", "releases"),
@@ -34,9 +33,8 @@ lazy val allResolvers = resolvers ++= Seq(
 )
 
 lazy val ComponentTest = config("component") extend Test
-lazy val CdsIntegrationTest = config("it") extend Test
 
-val testConfig = Seq(ComponentTest, CdsIntegrationTest, Test)
+val testConfig = Seq(ComponentTest, Test)
 
 def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[Group] =
   tests.groupBy(_.name.takeWhile(_ != '.')).filter(packageAndTests => packages contains packageAndTests._1) map {
@@ -45,9 +43,7 @@ def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[G
   } toSeq
 
 lazy val testAll = TaskKey[Unit]("test-all")
-lazy val allTest = Seq(testAll := (test in ComponentTest)
-  .dependsOn((test in CdsIntegrationTest).dependsOn(test in Test)))
-
+lazy val allTest = Seq(testAll := (test in ComponentTest).dependsOn(test in Test).value)
 
 lazy val microservice = (project in file("."))
   .enablePlugins(PlayScala)
@@ -59,7 +55,6 @@ lazy val microservice = (project in file("."))
   .settings(
     commonSettings,
     unitTestSettings,
-    integrationTestSettings,
     componentTestSettings,
     playPublishingSettings,
     allTest,
@@ -80,16 +75,6 @@ lazy val unitTestSettings =
       addTestReportOption(Test, "test-reports")
     )
 
-lazy val integrationTestSettings =
-  inConfig(CdsIntegrationTest)(Defaults.testTasks) ++
-    Seq(
-      testOptions in CdsIntegrationTest := Seq(Tests.Filters(Seq(onPackageName("integration"), onPackageName("component")))),
-      fork in CdsIntegrationTest := false,
-      parallelExecution in CdsIntegrationTest := false,
-      addTestReportOption(CdsIntegrationTest, "int-test-reports"),
-      testGrouping in CdsIntegrationTest := forkedJvmPerTestConfig((definedTests in Test).value, "integration", "component")
-    )
-
 lazy val componentTestSettings =
   inConfig(ComponentTest)(Defaults.testTasks) ++
     Seq(
@@ -106,8 +91,7 @@ lazy val commonSettings: Seq[Setting[_]] =
     defaultSettings() ++
     gitStampSettings
 
-lazy val playPublishingSettings: Seq[sbt.Setting[_]] = sbtrelease.ReleasePlugin.releaseSettings ++
-  Seq(credentials += SbtCredentials) ++
+lazy val playPublishingSettings: Seq[sbt.Setting[_]] = Seq(credentials += SbtCredentials) ++
   publishAllArtefacts
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
@@ -122,8 +106,7 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 val compileDependencies = Seq(customsApiCommon)
 
-val testDependencies = Seq(hmrcTest, scalaTest,
-  scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
+val testDependencies = Seq(scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
 

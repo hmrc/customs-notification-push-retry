@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notificationpushretry.controllers
+package unit.util
 
-import controllers.Assets
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import akka.actor.ActorSystem
+import akka.stream.{ActorMaterializer, Materializer}
 
-@Singleton
-class DocumentationController @Inject()(assets: Assets, cc: ControllerComponents)
-  extends BackendController(cc) {
-
-  def conf(version: String, file: String): Action[AnyContent] = {
-    assets.at(s"/public/api/conf/$version", file)
-  }
-
+trait MaterializerSupport {
+  implicit val system = ActorSystem("Sys")
+  implicit val materializer: Materializer = ActorMaterializer()
 }

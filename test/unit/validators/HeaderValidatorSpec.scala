@@ -22,7 +22,7 @@ import play.api.mvc.{Action, AnyContent}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorInternalServerError}
 import uk.gov.hmrc.customs.notificationpushretry.validators.HeaderValidator
-import uk.gov.hmrc.play.test.UnitSpec
+import util.UnitSpec
 
 class HeaderValidatorSpec extends UnitSpec {
   private val validator = new HeaderValidator(Helpers.stubControllerComponents())

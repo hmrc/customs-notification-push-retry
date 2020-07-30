@@ -1,4 +1,3 @@
 # routes for api definition
 
 GET        /api/definition                 @uk.gov.hmrc.customs.notificationpushretry.controllers.DefinitionController.get
-GET        /api/conf/:version/*file        @uk.gov.hmrc.customs.notificationpushretry.controllers.DocumentationController.conf(version, file)
