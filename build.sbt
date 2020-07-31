@@ -15,16 +15,20 @@
  */
 
 import AppDependencies._
+import com.typesafe.sbt.web.PathMapping
+import com.typesafe.sbt.web.pipeline.Pipeline
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
-import sbt.{Resolver, _}
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
+import sbt.{Resolver, Test, inConfig, _}
+import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm}
 import uk.gov.hmrc.PublishingSettings._
 import uk.gov.hmrc.gitstamp.GitStampPlugin._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
+import scala.language.postfixOps
+
 name := "customs-notification-push-retry"
-scalaVersion := "2.12.10"
+scalaVersion := "2.12.11"
 targetJvm := "jvm-1.8"
 
 lazy val allResolvers = resolvers ++= Seq(
@@ -32,9 +36,9 @@ lazy val allResolvers = resolvers ++= Seq(
   Resolver.jcenterRepo
 )
 
-lazy val ComponentTest = config("component") extend Test
+lazy val CdsComponentTest = config("component") extend Test
 
-val testConfig = Seq(ComponentTest, Test)
+val testConfig = Seq(CdsComponentTest, Test)
 
 def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[Group] =
   tests.groupBy(_.name.takeWhile(_ != '.')).filter(packageAndTests => packages contains packageAndTests._1) map {
@@ -43,7 +47,7 @@ def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[G
   } toSeq
 
 lazy val testAll = TaskKey[Unit]("test-all")
-lazy val allTest = Seq(testAll := (test in ComponentTest).dependsOn(test in Test).value)
+lazy val allTest = Seq(testAll := (test in CdsComponentTest).dependsOn(test in Test).value)
 
 lazy val microservice = (project in file("."))
   .enablePlugins(PlayScala)
@@ -63,33 +67,25 @@ lazy val microservice = (project in file("."))
   )
   .settings(majorVersion := 0)
 
-def onPackageName(rootPackage: String): String => Boolean = {
-  testName => testName startsWith rootPackage
-}
-
 lazy val unitTestSettings =
   inConfig(Test)(Defaults.testTasks) ++
     Seq(
-      testOptions in Test := Seq(Tests.Filter(onPackageName("unit"))),
+      testOptions in Test := Seq(Tests.Filter(unitTestFilter)),
       unmanagedSourceDirectories in Test := Seq((baseDirectory in Test).value / "test"),
       addTestReportOption(Test, "test-reports")
     )
 
 lazy val componentTestSettings =
-  inConfig(ComponentTest)(Defaults.testTasks) ++
+  inConfig(CdsComponentTest)(Defaults.testTasks) ++
     Seq(
-      testOptions in ComponentTest := Seq(Tests.Filter(onPackageName("component"))),
-      fork in ComponentTest := false,
-      parallelExecution in ComponentTest := false,
-      addTestReportOption(ComponentTest, "component-reports")
+      testOptions in CdsComponentTest := Seq(Tests.Filter(componentTestFilter)),
+      fork in CdsComponentTest := false,
+      parallelExecution in CdsComponentTest := false,
+      addTestReportOption(CdsComponentTest, "comp-test-reports"),
+      testGrouping in CdsComponentTest := forkedJvmPerTestConfig((definedTests in Test).value, "component")
     )
 
-
-lazy val commonSettings: Seq[Setting[_]] =
-  scalaSettings ++
-    publishingSettings ++
-    defaultSettings() ++
-    gitStampSettings
+lazy val commonSettings: Seq[Setting[_]] = publishingSettings ++ gitStampSettings
 
 lazy val playPublishingSettings: Seq[sbt.Setting[_]] = Seq(credentials += SbtCredentials) ++
   publishAllArtefacts
@@ -102,31 +98,39 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   parallelExecution in Test := false
 )
 
+def componentTestFilter(name: String): Boolean = name startsWith "component"
+def unitTestFilter(name: String): Boolean = name startsWith "unit"
+
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 val compileDependencies = Seq(customsApiCommon)
-
 val testDependencies = Seq(scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests)
-
-unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
-
 libraryDependencies ++= compileDependencies ++ testDependencies
 
-// Task to create a ZIP file containing all XSDs for each version, under the version directory
-lazy val zipXsds = taskKey[Unit]("Zips up all XSDs")
-zipXsds := {
-  (baseDirectory.value / "public" / "api" / "conf")
-    .listFiles()
-    .filter(_.isDirectory)
-    .foreach { dir =>
-      val wcoXsdPaths = Path.allSubpaths(dir / "schemas")
-      val zipFile = dir / "customs-notification-push-retry-schemas.zip"
-      IO.zip(wcoXsdPaths, zipFile)
-    }
+unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
+(managedClasspath in Runtime) += (packageBin in Assets).value
+
+// Task to create a ZIP file containing all xsds for each version, under the version directory
+val zipXsds = taskKey[Pipeline.Stage]("Zips up all notification push retry XSDs")
+
+zipXsds := { mappings: Seq[PathMapping] =>
+  val targetDir = WebKeys.webTarget.value / "zip"
+  val zipFiles: Iterable[java.io.File] =
+    ((resourceDirectory in Assets).value / "api" / "conf")
+      .listFiles
+      .filter(_.isDirectory)
+      .map { dir =>
+        val xsdPaths = Path.allSubpaths(dir / "schemas")
+        val exampleMessagesFilter = new SimpleFileFilter(_.getPath.contains("/example_messages/"))
+        val exampleMessagesPaths = Path.selectSubpaths(dir / "examples", exampleMessagesFilter)
+        val zipFile = targetDir / "api" / "conf" / dir.getName / "customs-notification-push-retry-schemas.zip"
+        IO.zip(xsdPaths ++ exampleMessagesPaths, zipFile)
+        println(s"Created zip $zipFile")
+        zipFile
+      }
+  zipFiles.pair(Path.relativeTo(targetDir)) ++ mappings
 }
 
-// default package task depends on packageBin which we override here to also invoke the custom ZIP task
-packageBin in Compile := {
-  zipXsds.value
-  (packageBin in Compile).value
-}
+pipelineStages := Seq(zipXsds)
+
+evictionWarningOptions in update := EvictionWarningOptions.default.withWarnTransitiveEvictions(false)
