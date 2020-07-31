@@ -91,7 +91,15 @@ lazy val playPublishingSettings: Seq[sbt.Setting[_]] = Seq(credentials += SbtCre
   publishAllArtefacts
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
-  coverageExcludedPackages := "<empty>;.*(Reverse|Routes).*;com.kenshoo.play.metrics.*;.*definition.*;prod.*;testOnlyDoNotUseInAppConf.*;app.*;uk.gov.hmrc.BuildInfo;views.*;uk.gov.hmrc.customs.notificationpushretry.config.*",
+  coverageExcludedPackages := List(
+    "<empty>",
+    ".*(Reverse|Routes).*",
+    "com.kenshoo.play.metrics.*",
+    ".*definition.*",
+    "uk.gov.hmrc.BuildInfo",
+    "views.*",
+    "uk.gov.hmrc.customs.notificationpushretry.config.*"
+  ).mkString(";"),
   coverageMinimum := 100,
   coverageFailOnMinimum := true,
   coverageHighlighting := true,
