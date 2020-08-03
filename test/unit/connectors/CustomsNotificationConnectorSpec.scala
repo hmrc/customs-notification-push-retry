@@ -61,6 +61,7 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
 
       when(mockHttpClient.GET[HttpResponse](meq(s"http://customs-notification.url$BlockedCountEndpointWithContext"))
         (any[HttpReads[HttpResponse]](), any[HeaderCarrier](), any[ExecutionContext])).thenReturn(Future.successful(mockHttpResponse))
+      when(mockHttpResponse.status).thenReturn(OK)
       when(mockHttpResponse.body).thenReturn("<pushNotificationBlockedCount>1</pushNotificationBlockedCount>")
 
       val result: String = await(customsNotificationConnector.getNotifications(ClientId(clientId)))
@@ -98,6 +99,7 @@ class CustomsNotificationConnectorSpec extends UnitSpec with MockitoSugar with B
         await(customsNotificationConnector.deleteBlocked(ClientId(clientId)))
       }
 
+      logVerifier(mockLogger, "error", "call to notification service failed due to Fail. DELETE url=http://customs-notification.url/customs-notification/blocked-flag")
       caught.getMessage shouldBe "Fail"
     }
   }

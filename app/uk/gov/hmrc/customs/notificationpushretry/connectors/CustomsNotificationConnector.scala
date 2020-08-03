@@ -24,13 +24,14 @@ import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class CustomsNotificationConnector @Inject()(config: ServiceConfigProvider,
                                              http: HttpClient,
                                              logger: CdsLogger)
-                                            (implicit ec: ExecutionContext) {
+                                            (implicit ec: ExecutionContext) extends HttpErrorFunctions {
 
   private lazy val serviceBaseUrl: String = config.getConfig("customs-notification").url
 
@@ -38,8 +39,13 @@ class CustomsNotificationConnector @Inject()(config: ServiceConfigProvider,
 
     implicit val hc: HeaderCarrier = headerCarrier(clientId)
 
-    http.GET[HttpResponse](s"$serviceBaseUrl/blocked-count").map {
-      response => response.body
+    http.GET[HttpResponse](s"$serviceBaseUrl/blocked-count").map { response =>
+      response.status match {
+        case status if is2xx(status) =>
+          response.body
+        case status => //1xx, 3xx, 4xx, 5xx
+          throw new Non2xxResponseException(status)
+      }
     }
   }
 
@@ -49,8 +55,13 @@ class CustomsNotificationConnector @Inject()(config: ServiceConfigProvider,
     val url = s"$serviceBaseUrl/blocked-flag"
 
     logger.debug(s"calling $url")
-    http.DELETE[HttpResponse](url).map {
-      response => response.status
+    http.DELETE[HttpResponse](url).map { response =>
+      response.status match {
+        case status if is2xx(status) =>
+          response.status
+        case status =>
+          throw new Non2xxResponseException(status)
+      }
     }.recoverWith {
       case _: NotFoundException => Future.successful(NOT_FOUND)
       case e: Throwable =>
