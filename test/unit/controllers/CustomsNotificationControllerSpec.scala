@@ -28,7 +28,7 @@ import uk.gov.hmrc.customs.notificationpushretry.controllers.CustomsNotification
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
 import uk.gov.hmrc.customs.notificationpushretry.validators.HeaderValidator
-import uk.gov.hmrc.play.test.UnitSpec
+import util.UnitSpec
 import util.MockitoPassByNameHelper.PassByNameVerifier
 
 import scala.concurrent.Future

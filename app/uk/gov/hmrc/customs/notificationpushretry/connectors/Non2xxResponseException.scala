@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notificationpushretry.controllers
+package uk.gov.hmrc.customs.notificationpushretry.connectors
 
-import controllers.Assets
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.ControllerComponents
+import uk.gov.hmrc.http.HttpException
 
-@Singleton
-class DocumentationController @Inject()(assets: Assets, cc: ControllerComponents)
-  extends uk.gov.hmrc.customs.api.common.controllers.DocumentationController(assets, cc) {
-
-}
+/**
+  * Exception we raise for any HTTPResponse we receive that are not a 2xx statuses.
+  *
+  * Used only to maintain legacy code that previously relied upon http-verbs throwing
+  * UpstreamErrorResponse exceptions for non 2xx statuses
+  *
+  * @param status that we received
+  */
+class Non2xxResponseException(status: Int) extends HttpException("Received a non 2XX response", status)

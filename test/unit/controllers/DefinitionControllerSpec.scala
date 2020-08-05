@@ -16,19 +16,17 @@
 
 package unit.controllers
 
-import akka.stream.Materializer
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.customs.notificationpushretry.config.AppContext
 import uk.gov.hmrc.customs.notificationpushretry.controllers.DefinitionController
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import unit.util.MaterializerSupport
+import util.UnitSpec
 import views.txt
 
-class DefinitionControllerSpec extends UnitSpec with WithFakeApplication {
-
-  private implicit val materializer: Materializer = fakeApplication.materializer
+class DefinitionControllerSpec extends UnitSpec with MaterializerSupport {
 
   private val apiContext = "context"
   private val appContext = new AppContext(Configuration("api.context" -> apiContext))
