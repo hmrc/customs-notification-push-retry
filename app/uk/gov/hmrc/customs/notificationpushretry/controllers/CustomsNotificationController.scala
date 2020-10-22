@@ -23,7 +23,7 @@ import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notificationpushretry.model.ClientId
 import uk.gov.hmrc.customs.notificationpushretry.services.CustomsNotificationService
 import uk.gov.hmrc.customs.notificationpushretry.validators.HeaderValidator
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.control.NonFatal

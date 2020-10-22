@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.http.{ContentTypes, MimeTypes}
 import play.api.mvc.{Action, AnyContent, Codec, ControllerComponents}
 import uk.gov.hmrc.customs.notificationpushretry.config.AppContext
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import views.txt
 
 import scala.concurrent.Future
