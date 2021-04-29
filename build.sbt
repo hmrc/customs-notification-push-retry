@@ -31,11 +31,6 @@ name := "customs-notification-push-retry"
 scalaVersion := "2.12.11"
 targetJvm := "jvm-1.8"
 
-lazy val allResolvers = resolvers ++= Seq(
-  Resolver.bintrayRepo("hmrc", "releases"),
-  Resolver.jcenterRepo
-)
-
 lazy val CdsComponentTest = config("component") extend Test
 
 val testConfig = Seq(CdsComponentTest, Test)
@@ -62,8 +57,7 @@ lazy val microservice = (project in file("."))
     componentTestSettings,
     playPublishingSettings,
     allTest,
-    scoverageSettings,
-    allResolvers
+    scoverageSettings
   )
   .settings(majorVersion := 0)
 
